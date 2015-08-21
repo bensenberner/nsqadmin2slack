@@ -12,7 +12,7 @@ def post_to_slack(txt, args, user):
     params = {
         'username' : user or 'NSQ Admin',
         'channel' : args.slack_channel_id,
-        'message' : txt,
+        'message' : txt, #TODO: txt[0]
         #'icon_emoji': txt[1]
     }
     url = "https://hooks.slack.com/services/" + args.slack_auth_token
