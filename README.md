@@ -4,7 +4,7 @@ This is a reader for [NSQ][nsq] that takes in json messages of the [format emitt
 
 ```
 usage: nsqadmin2slack.py [-h] --slack-auth-token SLACK_AUTH_TOKEN
-                           --slack-channel-name SLACK_CHANNEL_NAME --nsq-topic
+                           --slack-channel-id SLACK_CHANNEL_ID --nsq-topic
                            NSQ_TOPIC [--nsq-channel NSQ_CHANNEL] [-v]
                            (--nsqd-tcp-address NSQD_TCP_ADDRESS | --nsqlookupd-http-address NSQLOOKUPD_HTTP_ADDRESS)
 ```
