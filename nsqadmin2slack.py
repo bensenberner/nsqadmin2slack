@@ -53,7 +53,7 @@ def text_from_nsq_body(body):
 def process_message(message, args):
     msg, emoji, user = text_from_nsq_body(message.body)
     if args.verbose:
-        logging.warn(msg_txt)
+        logging.warn(msg)
     response = post_to_slack(msg, emoji, args, user)
     if args.verbose:
         logging.warn(response.read())
