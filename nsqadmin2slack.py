@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import urllib
 import urllib2
 import json
 import logging
@@ -8,31 +9,30 @@ import argparse
 import functools
 
 
-def post_to_slack(txt, args, user):
+def post_to_slack(txt, emoji, args, user):
     params = {
         'username' : user or 'NSQ Admin',
         'channel' : args.slack_channel_id,
-        'message' : txt, #TODO: txt[0]
-        #'icon_emoji': txt[1]
+        'text' : ">" + txt,
+        'icon_emoji': emoji,
     }
     url = "https://hooks.slack.com/services/" + args.slack_auth_token
     data = json.dumps(params)
     req = urllib2.Request(url, data)
     return urllib2.urlopen(req)
 
-
 action_text_map = {
-    'create_topic' : 'Created topic', #new
-    'create_channel' : 'Created channel', #hatching_chick
-    'delete_topic' : 'Deleted topic', #recycle
-    'delete_channel' : 'Deleted channel', #poultry_leg or egg
-    'empty_channel' : 'Emptied channel', #toilet
-    'empty_topic' : 'Emptied topic', #cyclone
-    'pause_channel' : 'Paused channel', #fuji / construction (sleeping)
-    'unpause_channel' : 'Unpaused channel', #volcano / bullettrain_side  (relieved)
-    'pause_topic' : 'Paused topic', #non-potable_water
-    'unpause_topic' : 'Unpaused topic', #ocean
-    'tombstone_topic_producer': 'Tombstoned Topic Producer', #skull
+    'create_topic' : ('Created topic', ':new:'),
+    'create_channel' : ('Created channel', ':hatching_chick:'),
+    'delete_topic' : ('Deleted topic', ':recycle:'),
+    'delete_channel' : ('Deleted channel', ':poultry_leg:'),
+    'empty_channel' : ('Emptied channel', ':toilet:'),
+    'empty_topic' : ('Emptied topic', ':cyclone:'),
+    'pause_channel' : ('Paused channel', ':mount_fuji:'),
+    'unpause_channel' : ('Unpaused channel', ':volcano:'),
+    'pause_topic' : ('Paused topic', ':non-potable_water:'),
+    'unpause_topic' : ('Unpaused topic', ':ocean:'),
+    'tombstone_topic_producer': ('Tombstoned Topic Producer', ':skull:')
 }
 
 
@@ -41,23 +41,20 @@ def text_from_nsq_body(body):
         event = json.loads(body)
         topic_txt = event.get('topic', '')
         channel_txt = event.get('channel', '')
+        msg, emoji = action_text_map.get(event['action'], event['action'])
         if channel_txt:
-            #TODO: make the values tuples and then make it "get" the first index, with the second one
-            # being an emoji
-            return action_text_map.get(event['action'], event['action']) + " " + channel_txt +\
-                " in topic " + topic_txt, event.get('user', 'unknown user')
+            return msg + " " + channel_txt + " in topic " + topic_txt, emoji, event.get('user', 'unknown user')
         else:
-            return action_text_map.get(event['action'], event['action']) + " " + topic_txt,\
-                event.get('user', 'unknown user')
+            return msg + " " + topic_txt, emoji, event.get('user', 'unknown user')
     except ValueError:
         logging.exception("Invalid json from nsq")
 
 
 def process_message(message, args):
-    msg_txt, user = text_from_nsq_body(message.body)
+    msg, emoji, user = text_from_nsq_body(message.body)
     if args.verbose:
         logging.warn(msg_txt)
-    response = post_to_slack(msg_txt, args, user)
+    response = post_to_slack(msg, emoji, args, user)
     if args.verbose:
         logging.warn(response.read())
     return True
